@@ -33,7 +33,11 @@ int main(){
 
 
     for(int i=0; i<16; i++){
-        buttons[i].rect = {(i%cols) * buttonWidth, (i/cols) * buttonHeight + 100, buttonWidth, buttonHeight};
+        buttons[i].rect = {static_cast<float>(i%cols) * buttonWidth, 
+                           static_cast<float>(i/cols) * buttonHeight + 100.0f, 
+                           static_cast<float>(buttonWidth), 
+                           static_cast<float>(buttonHeight)
+        };
         buttons[i].labels = labels[i];
     }
 
