@@ -1,82 +1,131 @@
 #include "../include/raylib/raylib.h"
 #include <iostream>
+#include <string>
 
 
-const int WIDTH = 400;
-const int HEIGHT = 700;
 
-
-typedef struct{
+typedef struct {
     Rectangle rect;
-    const char* labels;
-}Button;
+    const char* label;
+} Button;
 
 
-void draw_button(const Button &button);
+
+// function to draw the buttons
+void draw_buttons(const Button &button);
+// handling input
+std::string handleInput(const Button &button, std::string &currInput, bool sholdCalc);
+
 
 int main(){
 
+    const int WIDTH = 400;
+    const int HEIGHT = 700;
+
+
     InitWindow(WIDTH, HEIGHT, "calc");
+    SetTargetFPS(60);
+
+
 
     Button buttons[16];
-    const char* labels[16] = {
+    const char* icons[16] = {
         "7", "8", "9", "/",
         "4", "5", "6", "*",
-        "1", "2", "3", "-",
-        "C", "0", "=", "+"
+        "3", "2", "1", "+",
+        "C", "0", "=", "-",
     };
 
-    int rows = 4;
+
+    //cols and rows vars
     int cols = 4;
+    int rows = 4;
+    // button width and height
     int buttonWidth = WIDTH / cols;
     int buttonHeight = (HEIGHT - 100) / rows;
 
 
+    //mapping the icons to the buttons
     for(int i=0; i<16; i++){
-        buttons[i].rect = {static_cast<float>(i%cols) * buttonWidth, 
-                           static_cast<float>(i/cols) * buttonHeight + 100.0f, 
-                           static_cast<float>(buttonWidth), 
-                           static_cast<float>(buttonHeight)
+        buttons[i].rect = {
+            static_cast<float>(i%cols) * buttonWidth,
+            static_cast<float>(i/rows) * buttonHeight + 100.0f,
+            static_cast<float>(buttonWidth),
+            static_cast<float>(buttonHeight)
         };
-        buttons[i].labels = labels[i];
+
+        buttons[i].label = icons[i];
     }
 
 
-
-    SetTargetFPS(60);
+    std::string currentInput = "";
+    bool shouldCalc = false;
 
 
     while(!WindowShouldClose()){
+    
+        Vector2 mousePos = GetMousePosition();
+        bool mousePressed = IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
 
-        Vector2 mousePosition = GetMousePosition();
-        bool mousePressed = IsMouseButtonPressed(MOUSE_LEFT_BUTTON);
-
+        // iterate through all the buttons for collisiont when the left mouse button is clicked
         for(int i=0; i<16; i++){
-            if(CheckCollisionPointRec(mousePosition, buttons[i].rect) && mousePressed){
-                // I'll add some other functionalities here
-                std::cout << "Button " << buttons[i].labels << " Clicked" << std::endl;
+            if(CheckCollisionPointRec(mousePos, buttons[i].rect) && mousePressed){
+                std::cout << "button " << buttons[i].label << " clicked!" << std::endl;
+                currentInput = handleInput(buttons[i], currentInput, shouldCalc);
             }
         }
-            
+
         BeginDrawing();
-            ClearBackground(DARKGRAY);
-            for(int i=0; i<16; i++){
-                draw_button(buttons[i]);
-            }
+    
+        ClearBackground(DARKGRAY);
+        for(int i=0; i<16; i++){
+            draw_buttons(buttons[i]);
+        }
+
+        DrawText(currentInput.c_str(), 20, 20, 30, BLACK);
+
         EndDrawing();
     }
 
+    
     CloseWindow();
-
     return 0;
 }
 
 
 
-void draw_button(const Button &button) {
-    DrawRectangleRec(button.rect, BLACK); 
-    DrawRectangleLinesEx(button.rect, 2, DARKGRAY);
 
-    Vector2 textSize = MeasureTextEx(GetFontDefault(), button.labels, 20, 2);
-    DrawText(button.labels, button.rect.x + (button.rect.width - textSize.x) / 2, button.rect.y + (button.rect.height - textSize.y) / 2, 20, WHITE);
+void draw_buttons(const Button &button){
+    DrawRectangleRec(button.rect, BLACK);
+    // border btwn buttons
+    DrawRectangleLinesEx(button.rect, 2, WHITE);
+
+    Vector2 textSize = MeasureTextEx(GetFontDefault(), button.label, 20, 2);
+    DrawText(button.label, button.rect.x + (button.rect.width - textSize.x) / 2, button.rect.y + (button.rect.height - textSize.y) / 2, 20, WHITE);
+
+}
+
+
+
+
+std::string handleInput(const Button &button, std::string &currInput, bool shouldCalc){
+    const char* icons = button.label;
+
+    if(icons[0] >= '0' && icons[0]<='9'){
+        currInput += icons;
+    }
+    else if(icons[0] == 'C'){
+        currInput = "";
+    }
+    else if(icons[0] == '='){
+        // todo function to trigger calculation
+        shouldCalc = true;
+    }
+    else {
+        currInput += " ";
+        currInput += icons;
+        currInput += " ";
+    }
+
+    return currInput;
 }
